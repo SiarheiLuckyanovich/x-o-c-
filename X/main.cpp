@@ -1,149 +1,175 @@
 #include <iostream>
-#include <clocale>
-#include <math.h>
+#include <random>
 #include <stdlib.h>
-#include <ctime>
-#include <fstream>
-#include <string>
+#include <chrono>
 #include <windows.h>
-#include <semaphore.h>
 
 using namespace std;
-
-
-enum PLAYER {HUMAN='X', AI='O', EMPTY='_'};
-typedef struct
+//=========================================================================
+enum TCell : char
 {
-    int szY;
-    int szX;
-    PLAYER** map;
-    int towin;
-} Field;
+     CROSS = 'X',
+     ZERO = 'O',
+     EMPTY = '_'
+};
 
-#define CHK_DOT(x, sz) ((x) >= 0 && (x) < (sz))
-#define POINT_ITEM(a, r, c) (*((*(a + r)) + c))
-char getval(PLAYER** array, const int row, const int col) {
-return POINT_ITEM(array, row, col);
-}
-void setval(PLAYER** array, const int row, const int col, PLAYER value) {
-POINT_ITEM(array, row, col) = value;
-}
-int isvalid(Field &field, int x, int y) {
-return CHK_DOT(x, field.szX) && CHK_DOT(y, field.szY);
-}
-int isempty(Field &field, int x, int y) {
-return getval(field.map, y, x) == EMPTY;
-}
-
-void init(Field &field)
+struct TCoord
 {
-    field.towin = 3;
-    field.szY = 3;
-    field.szX = 3;
-    field.map = (PLAYER **) calloc(sizeof(PLAYER *), field.szY);
+    size_t y { 0U };
+    size_t x { 0U };
+};
+enum TProgress
+{
+    IN_PROGRESS,
+    WON_HUMAN,
+    WON_AI,
+    DRAW
+};
 
-    for (int y = 0; y < field.szY; ++y)
+//=========================================================================
+#pragma pack(push, 1)
+struct TGame
+{
+    TCell** ppField { nullptr };
+    const size_t SIZE { 3U };
+    TProgress progress { IN_PROGRESS };
+    TCell human, ai;
+    size_t turn { 0U };
+};
+#pragma pack(pop)
+//=========================================================================
+//inline void clearScr() {...}
+//=========================================================================
+int32_t __fastcall getRandomNum(int32_t min, int32_t max)
+{
+    const static auto seed = chrono::system_clock::now().time_since_epoch().count();
+    static mt19937_64 generator(seed);
+    uniform_int_distribution<int32_t> dis(min, max);
+    return dis(generator);
+}
+
+void __fastcall initGame(TGame & g)
+{
+    g.ppField = new TCell* [g.SIZE];
+    for (size_t i = 0U; i < g.SIZE; i++)
     {
-        *(field.map + y) = (PLAYER *) calloc(sizeof(PLAYER),field.szX);
-        for (int x = 0; x < field.szX; ++x)
+        g.ppField [i]= new TCell [g.SIZE];
+    }
+    for (size_t y = 0; y < g.SIZE; y++)
+    {
+        for (size_t x = 0; x < g.SIZE; x++)
         {
-            setval(field.map, y, x, EMPTY);
+            g.ppField [y][x] = EMPTY;
         }
     }
-}
-
-void print(Field &field)
-{ ////system("cls")
-    std::system("clear");
-    printf("-------\n");
-    for (int i = 0; i < field.szY; ++i)
+    if (getRandomNum(0, 1000) > 500)
     {
-        cout << "|";
-        for (int j = 0; j < field.szX; ++j)
+        g.human = CROSS;
+        g.ai = ZERO;
+        g.turn = 0;
+    }
+    else
+    {
+        g.human = ZERO;
+        g.ai = CROSS;
+        g.turn = 1;
+    }
+
+}
+void __fastcall deinitGame(TGame & g)
+{
+    for (size_t i = 0U; i < g.SIZE; i++)
+    {
+        delete[] g.ppField[i];
+    }
+    delete[] g.ppField;
+    g.ppField = nullptr;
+}
+void __fastcall printGame(const TGame & g)
+{
+    cout << "     ";
+    for (size_t x = 0; x < g.SIZE; x++)
+    {
+        cout << x+1 << "   ";
+    }
+    cout << endl;
+    for (size_t y = 0; y < g.SIZE; y++)
+    {
+        cout << " " << y+1 << " |";
+        for (size_t x = 0; x < g.SIZE; x++)
         {
-            printf("%c|", getval(field.map, i, j));
+            cout << g.ppField [y][x] << " |";
         }
         cout << endl;
     }
+    cout << endl << "Human: " << g.human << endl << "Computer: " << g.ai <<endl;
 }
-
-
-void human(Field &field)
+void __fastcall congrats(const TGame& g)
 {
-    int x;
-    int y;
-    do
-        {
-        printf("¬ведите координаты хода X и Y (от 1 до %d) через пробел >>",field.szY);
-        cin >> x >> y;
-// C-style
-// scanf("%d %d", &x, &y);
-// need to check if numbers are entered
-        x--; y--;
-        }
-        while (!isvalid(field, x, y) || !isempty(field, x, y));
-        setval(field.map, y, x, HUMAN);
+    if (g.progress == WON_HUMAN)
+        cout << " Humsn WON! :)" << endl;
+    else if (g.progress == WON_AI)
+        cout << " AI WON! :(" << endl;
+    else if (g.progress == DRAW)
+        cout << " DROW! :\ " << endl;
 }
 
-
-void ai(Field &field)
+TProgress __fastcall getWon(const TGame & g)
 {
-    int x, y;
-//C++11 <random>
-    random_device rd;
-    mt19937 mt(rd());
-    uniform_real_distribution<double> dist(0, 3);
-    do
-        {
-// C-style
-// x = rand() % field->szX;
-// y = rand() % field->szY;
-        x = dist(mt);
-        y = dist(mt);
-        }
-        while (!isempty(field, x, y));
-        setval(field.map, y, x, AI);
-}
 
-int winchk(Field &field, PLAYER c)
+
+}
+TCoord __fastcall getHumanCoord(const TGame & g)
 {
-    for (int y = 0; y < field.szX; y++)
-    {
-        for (int x = 0; x < field.szY; x++)
-        {
-            if (linechk(field, y, x, 1, 0, field.towin, c)) return 1;
-            if (linechk(field, y, x, 1, 1, field.towin, c)) return 1;
-            if (linechk(field, y, x, 0, 1, field.towin, c)) return 1;
-            if (linechk(field, y, x, 1, -1, field.towin, c)) return 1;
-        }
-    }
-return 0;
+    TCoord c;
+    do {
+
+        cout << "Enter X: ";
+        cin >> c.x;
+        cout << "Enter Y: ";
+        cin >> c.y;
+
+        c.x--;
+        c.y--;
+
+    } while (c.x > 2 || c.y > 2 || g.ppField [c.y][c.x]!= EMPTY);
+
+    return c;
+
 }
 
-int linechk(Field &field, int y, int x, int vx, int vy, int len, PLAYER c)
+TCoord __fastcall getAICoord(TGame & g)
 {
-    const int endx = x + (len - 1) * vx;
-    const int endy = y + (len - 1) * vy;
-    if (!isvalid(field, endx, endy))
-    return 0;
-for (int i = 0; i < len; i++)
-if (getval(field.map, (y + i * vy), (x + i * vx)) != c)
-return 0;
-return 1;
+
+
 }
 
-int isdraw(Field &field)
-{
-    for (int y = 0; y < field.szY; y++)
-        for (int x = 0; x < field.szX; x++)
-            if (isempty(field, x, y))
-            return 0;
-    return 1;
-}
-
-
+//=========================================================================
 int main()
 {
-    cout << "Hello world!" << endl;
-    return 0;
+ TGame g;
+ initGame(g);
+ system("cls");
+ printGame(g);
+
+ do {
+    if (g.turn %2 == 0)
+    {
+        const TCoord c = getHumanCoord(g);
+        g.ppField[c.y][c.x] = g.human;
+    }
+    else
+    {
+        const TCoord c = getAICoord(g);
+        g.ppField[c.y][c.x] = g.ai;
+    }
+    system("cls");
+    printGame(g);
+    g.turn++;
+    g.progress = getWon(g);
+
+ } while (g.progress == IN_PROGRESS);
+
+  deinitGame(g);
+  return 0;
 }
