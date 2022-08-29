@@ -50,7 +50,7 @@ int32_t __fastcall getRandomNum(int32_t min, int32_t max)
 
 void __fastcall initGame(TGame & g)
 {
-    g.ppField = new TCell* [g.SIZE];
+    g.ppField = new TCell * [g.SIZE];
     for (size_t i = 0U; i < g.SIZE; i++)
     {
         g.ppField [i]= new TCell [g.SIZE];
@@ -98,11 +98,11 @@ void __fastcall printGame(const TGame & g)
         cout << " " << y+1 << " |";
         for (size_t x = 0; x < g.SIZE; x++)
         {
-            cout << g.ppField [y][x] << " |";
+            cout << g.ppField [y][x] << " | ";
         }
         cout << endl;
     }
-    cout << endl << "Human: " << g.human << endl << "Computer: " << g.ai <<endl;
+    cout << endl << "Human: " << g.human << endl << "Computer: " << g.ai <<endl <<endl;
 }
 void __fastcall congrats(const TGame& g)
 {
@@ -111,14 +111,61 @@ void __fastcall congrats(const TGame& g)
     else if (g.progress == WON_AI)
         cout << " AI WON! :(" << endl;
     else if (g.progress == DRAW)
-        cout << " DROW! :\ " << endl;
+        cout << " DRAW! :/" << endl;
 }
-
+//=========================================================================
 TProgress __fastcall getWon(const TGame & g)
-{
-
-
+{//победв в строках
+    for (size_t y=0; y < g.SIZE; y++)
+    {
+        if (g.ppField [y][0]== g.ppField [y][1] && g.ppField [y][0] == g.ppField [y][2])
+        {
+            if (g.ppField [y][0] == g.human)
+                return WON_HUMAN;
+            if (g.ppField [y][0] == g.ai)
+                return WON_AI;
+        }
+  //победа в столбцах
+    for (size_t x=0; x < g.SIZE; x++)
+        if (g.ppField [x][0]== g.ppField [x][1] && g.ppField [x][0] == g.ppField [x][2])
+        {
+            if (g.ppField [x][0] == g.human)
+                return WON_HUMAN;
+            if (g.ppField [x][0] == g.ai)
+                return WON_AI;
+        }
+  //победа в диогоналях
+    if (g.ppField [0][0] == g.ppField [1][1] && g.ppField [0][0] == g.ppField [2][2])
+        if (g.ppField [1][1] == g.human)
+            return WON_HUMAN;
+        if (g.ppField [1][1] == g.ai)
+            return WON_AI;
+    if (g.ppField [0][2] == g.ppField [1][1] && g.ppField [1][1] == g.ppField [2][0])
+        if (g.ppField [1][1] == g.human)
+            return WON_HUMAN;
+        if (g.ppField [1][1] == g.ai)
+            return WON_AI;
+    }
+ //ничья
+    bool draw {true};
+    for (size_t y=0; y < g.SIZE; y++)
+    {
+        for (size_t x=0; x < g.SIZE; x++)
+        {
+            if (g.ppField[y][x] == EMPTY)
+            {
+                draw = false;
+                break;
+            }
+        }
+        if (!draw)
+            break;
+    }
+    if (draw)
+        return DRAW;
+    return IN_PROGRESS;
 }
+//=========================================================================
 TCoord __fastcall getHumanCoord(const TGame & g)
 {
     TCoord c;
@@ -137,11 +184,105 @@ TCoord __fastcall getHumanCoord(const TGame & g)
     return c;
 
 }
-
+//=========================================================================
 TCoord __fastcall getAICoord(TGame & g)
 {
+//предвыйгрышь
+ for (size_t y = 0; y < g.SIZE; y++)
+    {
+        for (size_t x = 0; x < g.SIZE; x++)
+        {
+            if (g.ppField [y][x] == EMPTY)
+            {
+                g.ppField [y][x] = g.ai;
+                if (getWon(g) == WON_AI)
+                {
+                    g.ppField [y][x] = EMPTY;
+                    return { x, y};
+                }
+                g.ppField [y][x] = EMPTY;
+            }
+        }
+    }
+//предпроигрыш
+ for (size_t y = 0; y < g.SIZE; y++)
+    {
+        for (size_t x = 0; x < g.SIZE; x++)
+        {
+            if (g.ppField [y][x] == EMPTY)
+            {
+                g.ppField [y][x] = g.human;
+                if (getWon(g) == WON_HUMAN)
+                {
+                    g.ppField [y][x] = EMPTY;
+                    return { x, y};
+                }
+                g.ppField [y][x] = EMPTY;
+            }
+        }
+    }
+//преоритеты
+    if (g.ppField[1][1] == EMPTY)//центр
+    {
+        return { 1, 1};
+    }
 
 
+    TCoord buf [4];//углы
+    size_t num {0U};
+    if (g.ppField[0][0] == EMPTY)
+    {
+         buf[num] = { 0 , 0};
+         num++;
+    }
+    if (g.ppField[0][2] == EMPTY)
+    {
+         buf[num] = { 0 , 2};
+         num++;
+    }
+    if (g.ppField[2][0] == EMPTY)
+    {
+         buf[num] = { 2 , 0};
+         num++;
+    }
+    if (g.ppField[2][2] == EMPTY)
+    {
+         buf[num] = { 2 , 2};
+         num++;
+    }
+    if (num > 0)
+    {
+        const size_t index = getRandomNum( 0, 1000) %num;
+        return buf[index];
+    }
+    //не углы
+
+    if (g.ppField[0][1] == EMPTY)
+    {
+         buf[num] = { 0 , 1};
+         num++;
+    }
+    if (g.ppField[1][0] == EMPTY)
+    {
+         buf[num] = { 1 , 0};
+         num++;
+    }
+    if (g.ppField[1][2] == EMPTY)
+    {
+         buf[num] = { 1 , 2};
+         num++;
+    }
+    if (g.ppField[2][1] == EMPTY)
+    {
+         buf[num] = { 2 , 1};
+         num++;
+    }
+    if (num > 0)
+    {
+        const size_t index = getRandomNum( 0, 1000) %num;
+        return buf[index];
+    }
+    return {0, 0};
 }
 
 //=========================================================================
@@ -173,3 +314,4 @@ int main()
   deinitGame(g);
   return 0;
 }
+//=========================================================================
