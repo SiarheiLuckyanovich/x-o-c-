@@ -98,11 +98,11 @@ void __fastcall printGame(const TGame & g)
         cout << " " << y+1 << " |";
         for (size_t x = 0; x < g.SIZE; x++)
         {
-            cout << g.ppField [y][x] << " | ";
+            cout << static_cast <char> (g.ppField [y][x]) << " | ";
         }
         cout << endl;
     }
-    cout << endl << "Human: " << g.human << endl << "Computer: " << g.ai <<endl <<endl;
+    cout << endl << "Human: " << static_cast <char> (g.human) << endl << "Computer: " << static_cast <char> (g.ai) <<endl <<endl;
 }
 void __fastcall congrats(const TGame& g)
 {
@@ -310,7 +310,7 @@ int main()
     g.progress = getWon(g);
 
  } while (g.progress == IN_PROGRESS);
-
+  congrats(g);
   deinitGame(g);
   return 0;
 }
