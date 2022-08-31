@@ -87,7 +87,14 @@ void __fastcall deinitGame(TGame & g)
 }
 void __fastcall printGame(const TGame & g)
 {
-    cout << "     ";
+    cout << endl;
+    cout << endl;
+    cout << "      ---====<< The game TicTacToe is begin! >>===---";
+    cout << endl;
+    cout << "                ============================" ;
+    cout << endl;
+
+    cout << "                         " ;
     for (size_t x = 0; x < g.SIZE; x++)
     {
         cout << x+1 << "   ";
@@ -95,57 +102,63 @@ void __fastcall printGame(const TGame & g)
     cout << endl;
     for (size_t y = 0; y < g.SIZE; y++)
     {
-        cout << " " << y+1 << " |";
+        cout  << "                    " << " " << y+1 << " |";
         for (size_t x = 0; x < g.SIZE; x++)
         {
             cout << static_cast <char> (g.ppField [y][x]) << " | ";
         }
         cout << endl;
+        cout << endl;
     }
-    cout << endl << "Human: " << static_cast <char> (g.human) << endl << "Computer: " << static_cast <char> (g.ai) <<endl <<endl;
+    cout << endl << "                       Human: " << static_cast <char> (g.human) ;
+    cout << endl << "                       Computer: " << static_cast <char> (g.ai) <<endl <<endl;
 }
-void __fastcall congrats(const TGame& g)
-{
-    if (g.progress == WON_HUMAN)
-        cout << " Humsn WON! :)" << endl;
-    else if (g.progress == WON_AI)
-        cout << " AI WON! :(" << endl;
-    else if (g.progress == DRAW)
-        cout << " DRAW! :/" << endl;
-}
+
 //=========================================================================
 TProgress __fastcall getWon(const TGame & g)
-{//победв в строках
+{
+    //победв в строках
     for (size_t y=0; y < g.SIZE; y++)
     {
-        if (g.ppField [y][0]== g.ppField [y][1] && g.ppField [y][0] == g.ppField [y][2])
+        if ((g.ppField [y][0]== g.ppField [y][1]) && (g.ppField [y][0] == g.ppField [y][2]))
         {
             if (g.ppField [y][0] == g.human)
                 return WON_HUMAN;
+
             if (g.ppField [y][0] == g.ai)
                 return WON_AI;
         }
+    }
   //победа в столбцах
     for (size_t x=0; x < g.SIZE; x++)
-        if (g.ppField [x][0]== g.ppField [x][1] && g.ppField [x][0] == g.ppField [x][2])
+    {
+         if ((g.ppField [x][0]== g.ppField [x][1]) && (g.ppField [x][0] == g.ppField [x][2]))
         {
             if (g.ppField [x][0] == g.human)
                 return WON_HUMAN;
             if (g.ppField [x][0] == g.ai)
                 return WON_AI;
         }
+    }
+
   //победа в диогоналях
     if (g.ppField [0][0] == g.ppField [1][1] && g.ppField [0][0] == g.ppField [2][2])
-        if (g.ppField [1][1] == g.human)
-            return WON_HUMAN;
-        if (g.ppField [1][1] == g.ai)
-            return WON_AI;
-    if (g.ppField [0][2] == g.ppField [1][1] && g.ppField [1][1] == g.ppField [2][0])
+    {
         if (g.ppField [1][1] == g.human)
             return WON_HUMAN;
         if (g.ppField [1][1] == g.ai)
             return WON_AI;
     }
+
+    if (g.ppField [0][2] == g.ppField [1][1] && g.ppField [1][1] == g.ppField [2][0])
+    {
+        if (g.ppField [1][1] == g.human)
+            return WON_HUMAN;
+        if (g.ppField [1][1] == g.ai)
+            return WON_AI;
+    }
+
+
  //ничья
     bool draw {true};
     for (size_t y=0; y < g.SIZE; y++)
@@ -157,23 +170,33 @@ TProgress __fastcall getWon(const TGame & g)
                 draw = false;
                 break;
             }
-        }
-        if (!draw)
+            if (!draw)
             break;
-    }
-    if (draw)
+        }
+        if (draw)
         return DRAW;
+    }
     return IN_PROGRESS;
+}
+//=========================================================================
+void __fastcall congrats(const TGame& g)
+{
+    if (g.progress == WON_HUMAN)
+        cout << " Humsn WON! :)" << endl;
+    else if (g.progress == WON_AI)
+        cout << " AI WON! :(" << endl;
+    else if (g.progress == DRAW)
+        cout << " DRAW! :/" << endl;
 }
 //=========================================================================
 TCoord __fastcall getHumanCoord(const TGame & g)
 {
     TCoord c;
     do {
-
-        cout << "Enter X: ";
+        cout << "                       Your turn" << endl;
+        cout << "                       Enter column: ";
         cin >> c.x;
-        cout << "Enter Y: ";
+        cout << "                       Enter line: ";
         cin >> c.y;
 
         c.x--;
@@ -198,7 +221,7 @@ TCoord __fastcall getAICoord(TGame & g)
                 if (getWon(g) == WON_AI)
                 {
                     g.ppField [y][x] = EMPTY;
-                    return { x, y};
+                    return { y, x};
                 }
                 g.ppField [y][x] = EMPTY;
             }
@@ -215,7 +238,7 @@ TCoord __fastcall getAICoord(TGame & g)
                 if (getWon(g) == WON_HUMAN)
                 {
                     g.ppField [y][x] = EMPTY;
-                    return { x, y};
+                    return { y, x};
                 }
                 g.ppField [y][x] = EMPTY;
             }
@@ -225,6 +248,7 @@ TCoord __fastcall getAICoord(TGame & g)
     if (g.ppField[1][1] == EMPTY)//центр
     {
         return { 1, 1};
+        g.ppField [1][1] = EMPTY;
     }
 
 
@@ -282,7 +306,7 @@ TCoord __fastcall getAICoord(TGame & g)
         const size_t index = getRandomNum( 0, 1000) %num;
         return buf[index];
     }
-    return {0, 0};
+ return { 0, 0};
 }
 
 //=========================================================================
@@ -292,26 +316,28 @@ int main()
  initGame(g);
  system("cls");
  printGame(g);
-
  do {
-    if (g.turn %2 == 0)
-    {
+        system("cls");
+        printGame(g);
+        if (g.turn %2 == 0)
+        {
         const TCoord c = getHumanCoord(g);
         g.ppField[c.y][c.x] = g.human;
-    }
-    else
-    {
+        }
+        else
+        {
         const TCoord c = getAICoord(g);
         g.ppField[c.y][c.x] = g.ai;
-    }
-    system("cls");
-    printGame(g);
-    g.turn++;
-    g.progress = getWon(g);
+        }
+        system("cls");
+        printGame(g);
+        g.turn++;
+        g.progress = getWon(g);
 
- } while (g.progress == IN_PROGRESS);
-  congrats(g);
+        } while (g.progress == IN_PROGRESS);
+
   deinitGame(g);
+  congrats(g);
   return 0;
 }
 //=========================================================================
