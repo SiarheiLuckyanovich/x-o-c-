@@ -316,6 +316,9 @@ int main()
  initGame(g);
  system("cls");
  printGame(g);
+ char chouseDificalt;
+ cout << "                       Choose the difficulty (H-hard, M-medium, E - easy): ";
+        cin >> chouseDificalt;
  do {
         system("cls");
         printGame(g);
