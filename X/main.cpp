@@ -40,6 +40,11 @@ struct TGame
 };
 #pragma pack(pop)
 //=========================================================================
+void SetColor(int text, int background)
+{
+   HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+   SetConsoleTextAttribute(hStdOut, (WORD)((background << 4) | text));
+}
 //inline void clearScr() {...}
 //=========================================================================
 int32_t __fastcall getRandomNum(int32_t min, int32_t max)
@@ -91,29 +96,46 @@ void __fastcall printGame(const TGame & g)
 {
     cout << endl;
     cout << endl;
-    cout << "      ---====<< The game TicTacToe is begin! >>===---";
+    SetColor( 13, 0);
+    cout << "      ---====<<";
+    SetColor( 12, 0);
+    cout << "The game TicTacToe is begin!";
+    SetColor( 13, 0);
+    cout << " >>===---";
     cout << endl;
+    SetColor( 14, 0);
     cout << "                ============================" ;
     cout << endl;
 
     cout << "                         " ;
     for (size_t x = 0; x < g.SIZE; x++)
     {
+        SetColor( 9, 0);
         cout << x+1 << "   ";
     }
     cout << endl;
     for (size_t y = 0; y < g.SIZE; y++)
     {
-        cout  << "                    " << " " << y+1 << " |";
+        SetColor( 9, 0);
+        cout  << "                    " << " " << y+1;
+        SetColor( 7, 0);
+        cout  << " | ";
         for (size_t x = 0; x < g.SIZE; x++)
         {
+            SetColor( 7, 0);
             cout << static_cast <char> (g.ppField [y][x]) << " | ";
         }
         cout << endl;
         cout << endl;
     }
-    cout << endl << "                       Human: " << static_cast <char> (g.human) ;
-    cout << endl << "                       Computer: " << static_cast <char> (g.ai) <<endl <<endl;
+    SetColor( 3, 0);
+    cout << endl << "                       Human: ";
+    SetColor( 2, 0);
+    cout << static_cast <char> (g.human) ;
+    SetColor( 3, 0);
+    cout << endl << "                       Computer: ";
+    SetColor( 5, 0);
+    cout << static_cast <char> (g.ai) <<endl <<endl;
 }
 
 //=========================================================================
@@ -195,7 +217,9 @@ TCoord __fastcall getHumanCoord(const TGame & g)
 {
     TCoord c;
     do {
+        SetColor( 15, 0);
         cout << "                       Your turn" << endl;
+        SetColor( 2, 0);
         cout << "                       Enter column: ";
         cin >> c.x;
         cout << "                       Enter line: ";
@@ -475,7 +499,7 @@ do {
     system("cls");
     printGame(g);
 
-
+    SetColor( 4, 0);
     cout << "             Choose the difficulty (H-hard, M-medium, E - easy): ";
     cin >> g.chouseDificalt;
 
@@ -519,6 +543,7 @@ do {
 
     deinitGame(g);
     congrats(g);
+    SetColor( 10, 0);
 
     cout << "            Do you wanna play again? (say yes): ";
     cin >> answ;
