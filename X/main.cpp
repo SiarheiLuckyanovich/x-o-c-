@@ -197,9 +197,10 @@ TProgress __fastcall getWon(const TGame & g)
             if (!draw)
             break;
         }
-        if (draw)
-        return DRAW;
     }
+    if (draw)
+    return DRAW;
+
     return IN_PROGRESS;
 }
 //=========================================================================
